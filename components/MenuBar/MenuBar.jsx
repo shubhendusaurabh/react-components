@@ -1,7 +1,6 @@
 import { PropTypes, Component } from 'react'
 
 require('./MenuBar.scss')
-const React    = require('react')
 
 class MenuBar extends Component {
   constructor(props) {
