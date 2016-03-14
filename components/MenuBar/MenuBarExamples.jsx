@@ -1,6 +1,7 @@
 import MenuBar from './MenuBar'
 
 require('./MenuBarExamples.scss')
+const React    = require('react')
 
 const primaryNavigationItems = [
   {img: '../components/MenuBar/nav-community.svg', text: 'Community', link: '/community'},
