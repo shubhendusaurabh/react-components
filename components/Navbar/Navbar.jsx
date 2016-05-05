@@ -1,14 +1,15 @@
-require('./Navbar.scss')
-
-import MenuBar from '../MenuBar/MenuBar'
 import React, {PropTypes, Component} from 'react'
+import MenuBar from '../MenuBar/MenuBar'
 import SearchBar from '../SearchBar/SearchBar'
 import QuickLinks from '../QuickLinks/QuickLinks'
 import UserDropdownMenu from '../UserDropdownMenu/UserDropdownMenu'
+
 import TopcoderLogo from '../Icons/TopcoderLogo'
 import TopcoderMobileLogo from '../Icons/TopcoderMobileLogo'
 import HamburgerIcon from '../Icons/HamburgerIcon'
 import MagnifyGlassIcon from '../Icons/MagnifyGlassIcon'
+
+require('./Navbar.scss')
 
 const primaryNavigationItems = [
   {img: require('./nav-community.svg'), text: 'Community', link: '/community', regex: '/community?\?'},
@@ -18,30 +19,30 @@ const primaryNavigationItems = [
 
 // properties: username, userImage, domain, mobileMenuUrl, mobileSearchUrl, searchSuggestionsFunc
 // searchSuggestionsFunc should return a Promise object
-
 class Navbar extends Component {
-
   constructor(props) {
     super(props)
-    this.handleTermChange = this.handleTermChange.bind(this)
+
+    this.handleTermChange  = this.handleTermChange.bind(this)
     this.handleMobileClick = this.handleMobileClick.bind(this)
-    this.handleSearch = this.handleSearch.bind(this)
+    this.handleSearch      = this.handleSearch.bind(this)
+
     this.state = { recentTerms: [] }
   }
 
   handleTermChange(oldTerm, searchTerm, reqNo, callback) {
     // TODO should we check for the return value of the search suggestion function to be promise?
-    this.props.searchSuggestionsFunc.apply(this, [searchTerm])
-    .then(data => {
-      callback.apply(null, [reqNo, data])
-    })
-    .catch(error => {
-      callback.apply(null, [reqNo, [], error])
-    })
+    this.props.searchSuggestionsFunc.call(this, searchTerm)
+      .then(data => {
+        callback.call(null, reqNo, data)
+      })
+      .catch(error => {
+        callback.call(null, reqNo, [], error)
+      })
   }
 
   handleSearch(searchTerm) {
-    this.props.onSearch.apply(this, [searchTerm])
+    this.props.onSearch.call(this, searchTerm)
   }
 
   handleMobileClick(se) {
@@ -52,48 +53,50 @@ class Navbar extends Component {
   }
 
   render() {
-    const username = this.props.username
-    const userImage = this.props.userImage
-    const domain = this.props.domain
-    const mobileMenuUrl = this.props.mobileMenuUrl
-    const mobileSearchUrl = this.props.mobileSearchUrl
+    const { username, userImage, domain, mobileMenuUrl, mobileSearchUrl } = this.props
     const homePageUrl = '//www.' + domain
+
     return (
       <div className="Navbar flex middle space-between">
         <div className="topcoder-logo non-mobile">
           <a href={homePageUrl}><TopcoderLogo width={155}/></a>
         </div>
+
         <div className="topcoder-logo mobile">
           <a href={homePageUrl}><TopcoderMobileLogo width={40} /></a>
         </div>
+
         <div className="search-bar-wrap" onClick={this.handleMobileClick}>
           <div className="mobile-wrap"><a href={mobileSearchUrl}><MagnifyGlassIcon width={25} height={25} /></a></div>
           <SearchBar recentTerms={ this.state.recentTerms } onTermChange={ this.handleTermChange } onSearch={ this.handleSearch } />
         </div>
+
         <MenuBar items={primaryNavigationItems} orientation="horizontal" />
+
         <div className="menu-wrap" onClick={this.handleMobileClick}>
           <div className="mobile-wrap"><a href={mobileMenuUrl}><HamburgerIcon /></a></div>
           <div className="quick-links-wrap"><QuickLinks domain={domain} /></div>
           <UserDropdownMenu username={username} userImage={userImage} domain={domain} />
         </div>
+
       </div>
     )
   }
 }
 
 Navbar.propTypes = {
-  searchSuggestionsFunc : PropTypes.func.isRequired,
-  onSearch              : PropTypes.func.isRequired,
-  username              : PropTypes.string,
-  userImage             : PropTypes.string,
-  domain                : PropTypes.string.isRequired,
-  mobileMenuUrl         : PropTypes.string,
-  mobileSearchUrl       : PropTypes.string
+  searchSuggestionsFunc: PropTypes.func.isRequired,
+  onSearch             : PropTypes.func.isRequired,
+  username             : PropTypes.string,
+  userImage            : PropTypes.string,
+  domain               : PropTypes.string.isRequired,
+  mobileMenuUrl        : PropTypes.string,
+  mobileSearchUrl      : PropTypes.string
 }
 
 Navbar.defaultProps = {
-  mobileMenuUrl         : '/menu',
-  mobileSearchUrl       : '/search'
+  mobileMenuUrl  : '/menu',
+  mobileSearchUrl: '/search'
 }
 
 export default Navbar
