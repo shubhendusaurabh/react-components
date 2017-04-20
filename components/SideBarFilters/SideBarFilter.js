@@ -23,6 +23,7 @@ export const MODE = {
   ONGOING_CHALLENGES: 'Ongoing challenges',
   PAST_CHALLENGES: 'Past challenges',
   OPEN_FOR_REVIEW: 'Open for review',
+  UPCOMING_CHALLENGES: 'Upcoming challenges',
   CUSTOM: 'custom',
 };
 
@@ -89,6 +90,7 @@ class SideBarFilter extends ChallengeFilter {
         return item => !item.registrationOpen.startsWith('Yes')
           && item.status === 'ACTIVE';
       case MODE.PAST_CHALLENGES: return item => item.status === 'COMPLETED';
+      case MODE.UPCOMING_CHALLENGES: return item => moment(item.registrationStartDate) > moment();
       default: return super.getFilterFunction();
     }
   }
