@@ -42,13 +42,13 @@ function ChallengeCard({
     const challengeUrl = `${config.MAIN_URL}/challenge-details/`;
     const mmDetailUrl = `${window.location.protocol}${config.COMMUNITY_URL}/tc?module=MatchDetails&rd=`; // Marathon Match details
     if (challenge.track === 'DATA_SCIENCE') {
-      const id = `${challenge.challengeId}`;
+      const id = `${challenge.id}`;
       if (id.length < ID_LENGTH) {
-        return `${mmDetailUrl}${challenge.challengeId}`;
+        return `${mmDetailUrl}${challenge.id}`;
       }
-      return `${challengeUrl}${challenge.challengeId}/?type=develop`;
+      return `${challengeUrl}${challenge.id}/?type=develop`;
     }
-    return `${challengeUrl}${challenge.challengeId}/?type=${challenge.track.toLowerCase()}`;
+    return `${challengeUrl}${challenge.id}/?type=${challenge.track.toLowerCase()}`;
   };
 
   return (
@@ -67,11 +67,11 @@ function ChallengeCard({
 
         <div className={challenge.registrationOpen === 'Yes' ? 'challenge-details with-register-button' : 'challenge-details'}>
           <a className="challenge-title" href={challengeDetailLink(challenge)}>
-            {challenge.challengeName}
+            {challenge.name}
           </a>
           <div className="details-footer">
             <span className="date">
-              {challenge.status === 'Active' ? 'Ends ' : 'Ended '}
+              {challenge.status === 'ACTIVE' ? 'Ends ' : 'Ended '}
               {getEndDate(challenge.submissionEndDate)}
             </span>
             <Tags technologies={challenge.technologies} onTechTagClicked={onTechTagClicked} />
@@ -126,10 +126,10 @@ class Tags extends React.Component {
 
   renderTechnologies() {
     if (this.props.technologies.length) {
-      let technologyList = this.props.technologies;
-      if (this.props.technologies.length > VISIBLE_TECHNOLOGIES && !this.state.expanded) {
+      let technologyList = this.props.technologies.split(',');
+      if (technologyList.length > VISIBLE_TECHNOLOGIES && !this.state.expanded) {
         const lastItem = `+${technologyList.length - VISIBLE_TECHNOLOGIES}`;
-        technologyList = this.props.technologies.slice(0, VISIBLE_TECHNOLOGIES);
+        technologyList = technologyList.slice(0, VISIBLE_TECHNOLOGIES);
         technologyList.push(lastItem);
       }
       return technologyList.map(c => (
@@ -161,12 +161,12 @@ class Tags extends React.Component {
   }
 }
 Tags.defaultProps = {
-  technologies: [],
+  technologies: '',
   onTechTagClicked: _.noop,
 };
 
 Tags.propTypes = {
-  technologies: React.PropTypes.array,
+  technologies: React.PropTypes.string,
   onTechTagClicked: React.PropTypes.func,
 };
 

@@ -68,7 +68,7 @@ const serialize = filter => filter.getURLEncoded();
 
 
 // helper function to de-serialize query string to filter object
-const deserialize = queryString => {
+const deserialize = (queryString) => {
   const filter = new SideBarFilter({
     filter: queryString,
     isSavedFilter: true, // So that we can reuse constructor for deserializing
@@ -77,7 +77,7 @@ const deserialize = queryString => {
     filter.isCustomFilter = true;
   }
   return filter;
-}
+};
 
 // The demo component itself.
 class ChallengeFiltersExample extends React.Component {
@@ -225,21 +225,19 @@ class ChallengeFiltersExample extends React.Component {
     /* Normalizes challenge objects received from different API endpoints,
      * and adds them to the list of loaded challenges. */
     function helper2(response, community) {
-      return response.json().then(res => res.data.forEach((item) => {
+      return response.json().then(res => res.result.content.forEach((item) => {
         /* Only marathon matches, when received from the /data/marathon/challenges
          * endpoint, satisfy this. */
-        if (item.roundId) {
+        if (item.type === 'MARATHON_MATCH') {
           const endTimestamp = new Date(item.endDate).getTime();
           _.defaults(item, {
-            challengeId: item.roundId,
-            challengeName: item.fullName,
+            challengeName: item.name,
             challengeCommunity: 'Data',
             challengeType: 'Marathon',
             communities: new Set([community]),
             currentPhaseEndDate: item.endDate,
             currentPhaseName: endTimestamp > Date.now() ? 'Registration' : '',
-            numRegistrants: item.numberOfRegistrants,
-            numSubmissions: item.numberOfSubmissions,
+            numSubmissions: item.numberOfSubmissions || '',
             platforms: [],
             prize: [],
             registrationOpen: endTimestamp > Date.now() ? 'Yes' : 'No',
@@ -248,15 +246,12 @@ class ChallengeFiltersExample extends React.Component {
             submissionEndTimestamp: endTimestamp,
             technologies: [],
             totalPrize: 0,
-            track: 'DATA_SCIENCE',
-            status: endTimestamp > Date.now() ? 'Active' : 'Completed',
-            subTrack: 'MARATHON_MATCH',
           });
-          map[item.challengeId] = item;
+          map[item.id] = item;
         } else if (item.challengeType === 'SRM') {
           /* We don't support SRM yet, so we don't want them around */
         } else { /* All challenges from other endpoints have the same format. */
-          const existing = map[item.challengeId];
+          const existing = map[item.id];
           if (existing) existing.communities.add(community);
           else {
             const endTimestamp = new Date(item.submissionEndDate).getTime();
@@ -265,30 +260,30 @@ class ChallengeFiltersExample extends React.Component {
               platforms: [],
               registrationOpen: endTimestamp > Date.now() ? 'Yes' : 'No',
               technologies: [],
-              track: item.challengeCommunity.toUpperCase(),
+              track: item.track,
               status: endTimestamp > Date.now() ? 'Active' : 'Completed',
               submissionEndTimestamp: endTimestamp,
-              subTrack: item.challengeType.toUpperCase().split(' ').join('_'),
+              subTrack: item.subTrack,
             });
-            map[item.challengeId] = item;
-            item.platforms.forEach(helper1);
-            item.technologies.forEach(helper1);
+            map[item.id] = item;
+            item.platforms.split(',').forEach(helper1);
+            item.technologies.split(',').forEach(helper1);
           }
         }
       }));
     }
-    const api = this.props.config.API_URL_V2;
+    const api = this.props.config.API_URL;
     return Promise.all([
       /* Fetching of active challenges */
-      fetch(`${api}/challenges/active?type=design`).then(res => helper2(res, DESIGN_TRACK)),
-      fetch(`${api}/challenges/active?type=develop`).then(res => helper2(res, DEVELOP_TRACK)),
-      fetch(`${api}/dataScience/challenges/active`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
-      fetch(`${api}/data/marathon/challenges/?listType=active`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
+      fetch(`${api}/challenges/?track=design`).then(res => helper2(res, DESIGN_TRACK)),
+      fetch(`${api}/challenges/?track=develop`).then(res => helper2(res, DEVELOP_TRACK)),
+      fetch(`${api}/marathonMatches/?filter=status=active`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
+      // fetch(`${api}/data/marathon/challenges/?listType=active`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
       /* Fetching of some past challenges */
-      fetch(`${api}/challenges/past?type=design&pageSize=100`).then(res => helper2(res, DESIGN_TRACK)),
-      fetch(`${api}/challenges/past?type=develop&pageSize=100`).then(res => helper2(res, DEVELOP_TRACK)),
-      fetch(`${api}/dataScience/challenges/past?pageSize=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
-      fetch(`${api}/data/marathon/challenges/?listType=past&pageSize=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
+      fetch(`${api}/challenges/?filter=status=completed&pageSize=100`).then(res => helper2(res, DESIGN_TRACK)),
+      fetch(`${api}/challenges/?filter=status=completed&pageSize=100`).then(res => helper2(res, DEVELOP_TRACK)),
+      // fetch(`${api}/dataScience/challenges/past?pageSize=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
+      // fetch(`${api}/data/marathon/challenges/?listType=past&pageSize=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
     ]).then(() => {
       _.forIn(map, item => challenges.push(item));
       challenges.sort((a, b) => b.submissionEndTimestamp - a.submissionEndTimestamp);
@@ -345,7 +340,7 @@ class ChallengeFiltersExample extends React.Component {
     challenges = challenges.map((item) => {
       // check the challenge id exist in my challenges id
       // TODO: This is also should be moved to a better place, fetchChallenges() ?
-      if (_.indexOf(myChallengesId, item.challengeId) > -1) {
+      if (_.indexOf(myChallengesId, item.id) > -1) {
         _.assign(item, { myChallenge: true });
       }
       return item;
@@ -367,7 +362,7 @@ class ChallengeFiltersExample extends React.Component {
           onTechTagClicked={(tag) => {
             if (this.challengeFilters) this.challengeFilters.setKeywords(tag);
           }}
-          key={challenge.challengeId}
+          key={challenge.id}
         />
       );
 
@@ -394,14 +389,14 @@ class ChallengeFiltersExample extends React.Component {
           onTechTagClicked={tag => {
             if (this.challengeFilters) this.challengeFilters.setKeywords(tag);
           }}
-          challenges={_.uniqBy(challenges, 'challengeId')}
+          challenges={_.uniqBy(challenges, 'id')}
           currentFilterName={sidebarFilterName}
           expanded={sidebarFilterName !== 'All Challenges'}
           fetchCallback={(fetchedChallenges) => {
             this.setState({
               challenges: _.uniqBy(
                 challenges.concat(fetchedChallenges),
-                'challengeId',
+                'id',
               ),
             });
           }}

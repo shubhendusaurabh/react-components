@@ -13,6 +13,7 @@
 
 import _ from 'lodash';
 import uuid from 'uuid/v4';
+import moment from 'moment';
 import ChallengeFilter from '../ChallengeFilters/ChallengeFilter';
 
 export const MODE = {
@@ -81,14 +82,13 @@ class SideBarFilter extends ChallengeFilter {
       case MODE.OPEN_FOR_REVIEW: return item => item.currentPhaseName === 'Review';
       // The API has some incosistencies in the challenge items
       // thus we have to check all fields that define a challenges as 'Open for registration'
-      case MODE.OPEN_FOR_REGISTRATION: return item => (item.currentPhaseName
-        && (item.currentPhaseName.startsWith('Registration') || item.challengeType.startsWith('Marathon')))
-        && !item.status.startsWith('Completed')
-        && item.registrationOpen.startsWith('Yes');
+      case MODE.OPEN_FOR_REGISTRATION: return item => (item.currentPhases ? item.currentPhases.find(i => (i.phaseType === 'Registration' && i.phaseStatus === 'Open')) : (moment(item.registrationStartDate) < moment() && moment(item.registrationEndDate) > moment()));
+      // case MODE.OPEN_FOR_REGISTRATION: return item => (item.currentPhases);
+      // TODO marathom matches
       case MODE.ONGOING_CHALLENGES:
         return item => !item.registrationOpen.startsWith('Yes')
-          && item.status === 'Active';
-      case MODE.PAST_CHALLENGES: return item => item.status === 'Completed';
+          && item.status === 'ACTIVE';
+      case MODE.PAST_CHALLENGES: return item => item.status === 'COMPLETED';
       default: return super.getFilterFunction();
     }
   }

@@ -22,12 +22,12 @@ const Abbreviation = {
     CONTENT_CREATION: 'CC',
     REPORTING: 'Rp',
     DEVELOP_MARATHON_MATCH: 'MM',
-    FIRST2FINISH: 'F2F',
+    FIRST_2_FINISH: 'F2F',
     CODE: 'Cd',
   },
   DESIGN: {
     'BANNERS/ICONS': 'BI',
-    WEB_DESIGN: 'Wb',
+    WEB_DESIGNS: 'Wb',
     WIREFRAMES: 'Wf',
     LOGO_DESIGN: 'Lg',
     'PRINT/PRESENTATION': 'PP',
@@ -36,7 +36,7 @@ const Abbreviation = {
     'APPLICATION_FRONT-END_DESIGN': 'FE',
     STUDIO_OTHER: 'O',
     IDEA_GENERATION: 'IG',
-    DESIGN_FIRST2FINISH: 'DF2F',
+    DESIGN_FIRST_2_FINISH: 'F2F',
   },
 
   // TODO: When data science challenges are returned by the API v2, they have

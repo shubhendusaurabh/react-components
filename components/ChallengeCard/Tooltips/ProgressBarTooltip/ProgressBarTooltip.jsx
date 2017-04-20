@@ -88,6 +88,7 @@ function Tip(props) {
   let steps = [];
   const c = props.challenge;
   const isLoaded = props.isLoaded;
+  let appealsPhase = c.allPhases ? c.allPhases.find( phase => phase.phaseType === 'Appeals') : '';
   if (!c) return <div />;
   // TC API v2 does not provide detailed information on challenge phases,
   // it just includes some deadlines into the challenge details. The code below,
@@ -109,19 +110,19 @@ function Tip(props) {
     });
   }
   steps.push({
-    date: new Date(c.appealsEndDate),
+    date: new Date(appealsPhase ? appealsPhase.scheduledEndTime : ''),
     name: 'End',
   });
-
+  let currentPhase = c.currentPhases ? c.currentPhases.find( phase => phase.phaseStatus === 'Open') : '';
   steps = steps.sort((a, b) => a.date.getTime() - b.date.getTime());
-  const currentPhaseEnd = new Date(c.currentPhaseEndDate);
+  const currentPhaseEnd = new Date(currentPhase ? currentPhase.scheduledEndTime : '');
   steps = steps.map((step, index) => {
     let progress = 0;
     if (index < steps.length - 1) {
       if (steps[1 + index].date.getTime() < currentPhaseEnd.getTime()) progress = 100;
       else if (step.date.getTime() > currentPhaseEnd.getTime()) progress = 0;
       else {
-        const left = 1000 * c.currentPhaseRemainingTime;
+        const left = 1000 * moment.duration(moment().diff(currentPhaseEnd)).asSeconds();
         if (left < 0) progress = -1;
         else {
           progress = 100 * (left / (steps[1 + index].date.getTime() - steps[index].date.getTime()));
@@ -173,34 +174,22 @@ class ProgressBarTooltip extends React.Component {
     this.onTooltipHover = this.onTooltipHover.bind(this);
   }
   onTooltipHover() {
-    const that = this;
-    const chClone = _.clone(this.props.challenge);
-    this.fetchChallengeDetails(chClone.challengeId).then((passedInDetails) => {
-      const details = passedInDetails;
-      const chId = `${chClone.challengeId}`;
-      if (chId.length < ID_LENGTH) {
-        details.postingDate = chClone.startDate;
-        details.registrationEndDate = chClone.endDate;
-        details.submissionEndDate = chClone.endDate;
-        details.appealsEndDate = chClone.endDate;
-      }
-      that.setState({
-        chDetails: details,
-        isLoaded: true,
-      });
+    this.setState({
+      chDetails: this.props.challenge,
+      isLoaded: true,
     });
   }
   // It fetches detailed challenge data and attaches them to the 'details'
   // field of each challenge object.
-  fetchChallengeDetails(id) {
-    const challengesApi = `${this.props.config.API_URL_V2}/challenges/`;
-    const mmApi = `${this.props.config.API_URL_V2}/data/marathon/challenges/`; // MM - marathon match
-    const challengeId = `${id}`; // change to string
-    if (challengeId.length < ID_LENGTH) {
-      return fetch(`${mmApi}${id}`).then(res => res.json());
-    }
-    return fetch(`${challengesApi}${id}`).then(res => res.json());
-  }
+  // fetchChallengeDetails(id) {
+  //   const challengesApi = `${this.props.config.API_URL_V2}/challenges/`;
+  //   const mmApi = `${this.props.config.API_URL_V2}/data/marathon/challenges/`; // MM - marathon match
+  //   const challengeId = `${id}`; // change to string
+  //   if (challengeId.length < ID_LENGTH) {
+  //     return fetch(`${mmApi}${id}`).then(res => res.json());
+  //   }
+  //   return fetch(`${challengesApi}${id}`).then(res => res.json());
+  // }
   render() {
     const tip = <Tip challenge={this.state.chDetails} isLoaded={this.state.isLoaded} />;
     return (

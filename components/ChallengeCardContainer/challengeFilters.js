@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 export default [
   {
     name: 'All Challenges',
@@ -18,14 +20,13 @@ export default [
       'Title A-Z',
     ],
     getApiUrl: (pageIndex, pageSize = 50) => (
-      `${process.env.API_URL_V2}/user/challenges?&pageIndex=${pageIndex}&pageSize=${pageSize}`
+      `${process.env.API_URL}/challenges?&pageIndex=${pageIndex}&pageSize=${pageSize}`
     ),
   },
   {
     name: 'Open for registration',
     check(item) {
-      return item.registrationOpen.startsWith('Yes') && item.currentPhaseName
-        && item.currentPhaseName.startsWith('Registration');
+      return !!(item.currentPhases ? item.currentPhases.find(i => (i.phaseType === 'Registration' && i.phaseStatus === 'Open')) : (moment(item.registrationStartDate) < moment() && moment(item.registrationEndDate) > moment()));
     },
     sortingOptions: [
       'Most recent',
@@ -40,13 +41,13 @@ export default [
       phaseName: 'registration',
     },
     getApiUrl: (pageIndex, pageSize = 50) => (
-      `${process.env.API_URL_V2}/challenges/open?pageIndex=${pageIndex}&pageSize=${pageSize}`
+      `${process.env.API_URL}/challenges/?pageIndex=${pageIndex}&pageSize=${pageSize}`
     ),
   },
   {
     name: 'Ongoing challenges',
     check(item) {
-      return !item.registrationOpen.startsWith('Yes') && item.status === 'Active';
+      return !item.registrationOpen.startsWith('Yes') && item.status === 'ACTIVE';
     },
     sortingOptions: [
       'Most recent',
@@ -63,7 +64,7 @@ export default [
   {
     name: 'Past challenges',
     check(item) {
-      return item.status === 'Completed';
+      return item.status === 'COMPLETED';
     },
     sortingOptions: [
       'Most recent',
@@ -71,7 +72,7 @@ export default [
       'Prize high to low',
     ],
     getApiUrl: (pageIndex, pageSize = 50) => (
-      `${process.env.API_URL_V2}/challenges/past?pageIndex=${pageIndex}&pageSize=${pageSize}`
+      `${process.env.API_URL}/challenges/?filter=status=completed&pageIndex=${pageIndex}&pageSize=${pageSize}`
     ),
   },
   /**

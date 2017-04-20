@@ -73,39 +73,50 @@ function numSubmissionsTipText(number) {
 }
 
 const getStatusPhase = (challenge) => {
-  switch (challenge.currentPhaseName) {
-    case 'Registration': {
-      if (challenge.checkpointSubmissionEndDate && !getTimeLeft(challenge.checkpointSubmissionEndDate, 'Checkpoint').late) {
-        return {
-          currentPhaseName: 'Checkpoint',
-          currentPhaseEndDate: challenge.checkpointSubmissionEndDate,
-        };
-      }
-
-      return {
-        currentPhaseName: 'Submission',
-        currentPhaseEndDate: challenge.submissionEndDate,
-      };
-    }
-    case 'Submission': {
-      if (challenge.checkpointSubmissionEndDate && !getTimeLeft(challenge.checkpointSubmissionEndDate, 'Checkpoint').late) {
-        return {
-          currentPhaseName: 'Checkpoint',
-          currentPhaseEndDate: challenge.checkpointSubmissionEndDate,
-        };
-      }
-
-      return {
-        currentPhaseName: 'Submission',
-        currentPhaseEndDate: challenge.submissionEndDate,
-      };
-    }
-    default:
-      return {
-        currentPhaseName: challenge.currentPhaseName,
-        currentPhaseEndDate: challenge.currentPhaseEndDate,
-      };
+  const currentPhase = challenge.currentPhases ? challenge.currentPhases.find(phase => phase.phaseStatus === 'Open') : '';
+  if (currentPhase) {
+    return {
+      currentPhaseName: currentPhase.phaseType,
+      currentPhaseEndDate: currentPhase.scheduledEndTime,
+    };
   }
+  return {
+    currentPhaseName: 'Registration',
+    currentPhaseEndDate: challenge.registrationEndDate,
+  };
+  // switch (challenge.currentPhaseName) {
+  //   case 'Registration': {
+  //     if (challenge.checkpointSubmissionEndDate && !getTimeLeft(challenge.checkpointSubmissionEndDate, 'Checkpoint').late) {
+  //       return {
+  //         currentPhaseName: 'Checkpoint',
+  //         currentPhaseEndDate: challenge.checkpointSubmissionEndDate,
+  //       };
+  //     }
+
+  //     return {
+  //       currentPhaseName: 'Submission',
+  //       currentPhaseEndDate: challenge.submissionEndDate,
+  //     };
+  //   }
+  //   case 'Submission': {
+  //     if (challenge.checkpointSubmissionEndDate && !getTimeLeft(challenge.checkpointSubmissionEndDate, 'Checkpoint').late) {
+  //       return {
+  //         currentPhaseName: 'Checkpoint',
+  //         currentPhaseEndDate: challenge.checkpointSubmissionEndDate,
+  //       };
+  //     }
+
+  //     return {
+  //       currentPhaseName: 'Submission',
+  //       currentPhaseEndDate: challenge.submissionEndDate,
+  //     };
+  //   }
+  //   default:
+  //     return {
+  //       currentPhaseName: challenge.currentPhaseName,
+  //       currentPhaseEndDate: challenge.currentPhaseEndDate,
+  //     };
+  // }
 };
 
 const getTimeToGo = (start, end) => {
@@ -153,7 +164,7 @@ class ChallengeStatus extends Component {
   renderLeaderboard() {
     const { challenge } = this.props;
     const { DS_CHALLENGE_URL, CHALLENGE_URL } = this.state;
-    const { challengeId, challengeCommunity } = challenge;
+    const { id, challengeCommunity } = challenge;
     const challengeURL = challengeCommunity.toLowerCase() === 'data' ? DS_CHALLENGE_URL : CHALLENGE_URL;
     const leaderboard = this.state.winners && this.state.winners.map(winner => (
       <div className="avatar-container" key={winner.handle}>
@@ -164,7 +175,7 @@ class ChallengeStatus extends Component {
       ));
     return leaderboard || (
     <span className="winners" onMouseEnter={this.handleHover}>
-      <a href={`${challengeURL}${challengeId}`}>Winners</a>
+      <a href={`${challengeURL}${id}`}>Winners</a>
     </span>);
   }
 
@@ -173,7 +184,7 @@ class ChallengeStatus extends Component {
     const { detailLink } = this.props;
     const lng = getTimeLeft(
       challenge.registrationEndDate || challenge.submissionEndDate,
-      challenge.currentPhaseName,
+      'Registration',
     ).text.length;
     return (
       <a
@@ -185,7 +196,7 @@ class ChallengeStatus extends Component {
           {
             getTimeLeft(
               challenge.registrationEndDate || challenge.submissionEndDate,
-              challenge.currentPhaseName,
+              'Registration',
             ).text.substring(0, lng - 6)
           }
         </span>
@@ -197,13 +208,13 @@ class ChallengeStatus extends Component {
   registrantsLink(registrantsChallenge, type) {
     const { CHALLENGE_URL } = this.state;
     if (registrantsChallenge.track === 'DATA_SCIENCE') {
-      const id = `${registrantsChallenge.challengeId}`;
+      const id = `${registrantsChallenge.id}`;
       if (id.length < ID_LENGTH) {
-        return `${type}${registrantsChallenge.challengeId}`;
+        return `${type}${registrantsChallenge.id}`;
       }
-      return `${CHALLENGE_URL}${registrantsChallenge.challengeId}/?type=develop#viewRegistrant`;
+      return `${CHALLENGE_URL}${registrantsChallenge.id}/?type=develop#viewRegistrant`;
     }
-    return `${CHALLENGE_URL}${registrantsChallenge.challengeId}/?type=${registrantsChallenge.track.toLowerCase()}#viewRegistrant`;
+    return `${CHALLENGE_URL}${registrantsChallenge.id}/?type=${registrantsChallenge.track.toLowerCase()}#viewRegistrant`;
   }
 
   activeChallenge() {
@@ -216,7 +227,7 @@ class ChallengeStatus extends Component {
       <div className={challenge.registrationOpen === 'Yes' ? 'challenge-progress with-register-button' : 'challenge-progress'}>
         <span className="current-phase">
           {
-            challenge.currentPhaseName
+            challenge.currentPhases
               ? getStatusPhase(challenge).currentPhaseName
               : STALLED_MSG
           }
@@ -251,7 +262,7 @@ class ChallengeStatus extends Component {
         </span>
         <ProgressBarTooltip challenge={challenge} config={config}>
           {
-            challenge.status === 'Active' ?
+            challenge.status === 'ACTIVE' ?
               <div>
                 <ChallengeProgressBar
                   color="green"
@@ -295,14 +306,14 @@ class ChallengeStatus extends Component {
         <span className="challenge-stats">
           <span>
             <Tooltip content={numRegistrantsTipText(challenge.numRegistrants)}>
-              <a className="num-reg past" href={`${CHALLENGE_URL}${challenge.challengeId}/?type=${challenge.track.toLowerCase()}#viewRegistrant`}>
+              <a className="num-reg past" href={`${CHALLENGE_URL}${challenge.id}/?type=${challenge.track.toLowerCase()}#viewRegistrant`}>
                 <RegistrantsIcon /> <span className="number">{challenge.numRegistrants}</span>
               </a>
             </Tooltip>
           </span>
           <span>
             <Tooltip content={numSubmissionsTipText(challenge.numSubmissions)}>
-              <a className="num-sub past" href={`${CHALLENGE_URL}${challenge.challengeId}/?type=${challenge.track.toLowerCase()}#viewRegistrant`}>
+              <a className="num-sub past" href={`${CHALLENGE_URL}${challenge.id}/?type=${challenge.track.toLowerCase()}#viewRegistrant`}>
                 <SubmissionsIcon /> <span className="number">{challenge.numSubmissions}</span>
               </a>
             </Tooltip>
@@ -318,9 +329,9 @@ class ChallengeStatus extends Component {
     );
   }
 
-  getDevelopmentWinners(challengeId) {
+  getDevelopmentWinners(id) {
     return new Promise((resolve, reject) => {
-      fetch(`${this.props.config.API_URL_V2}/develop/challenges/${challengeId}`)
+      fetch(`${this.props.config.API_URL_V2}/develop/challenges/${id}`)
         .then(res => res.json())
         .then((data) => {
           let winners = data.submissions.filter(sub => sub.placement)
@@ -343,9 +354,9 @@ class ChallengeStatus extends Component {
     });
   }
 
-  getDesignWinners(challengeId) {
+  getDesignWinners(id) {
     return new Promise((resolve, reject) => {
-      fetch(`${this.props.config.API_URL_V2}/design/challenges/result/${challengeId}`)
+      fetch(`${this.props.config.API_URL_V2}/design/challenges/result/${id}`)
         .then(res => res.json())
         .then((data) => {
           let winners = data.results.filter(sub => sub.placement)
@@ -369,14 +380,14 @@ class ChallengeStatus extends Component {
   }
 
 
-  getWinners(challengeType, challengeId) {
+  getWinners(challengeType, id) {
     switch (challengeType) {
       case 'develop':
-        return this.getDevelopmentWinners(challengeId);
+        return this.getDevelopmentWinners(id);
       case 'design':
-        return this.getDesignWinners(challengeId);
+        return this.getDesignWinners(id);
       default:
-        return this.getDevelopmentWinners(challengeId);
+        return this.getDevelopmentWinners(id);
     }
   }
 
@@ -387,13 +398,13 @@ class ChallengeStatus extends Component {
   handleHover() {
     if (!this.state.winners) {
       const { challenge } = this.props;
-      const { challengeId, challengeCommunity } = challenge;
+      const { id, challengeCommunity } = challenge;
 
       // We don't have the API for data science challenge
       if (challengeCommunity.toLowerCase() === 'data') {
         return;
       }
-      const results = this.getWinners(challengeCommunity.toLowerCase(), challengeId);
+      const results = this.getWinners(challengeCommunity.toLowerCase(), id);
       results.then(winners => this.setState({ winners }));
     }
   }
@@ -412,7 +423,7 @@ class ChallengeStatus extends Component {
 ChallengeStatus.defaultProps = {
   challenge: {},
   config: {},
-  detailLink: "",
+  detailLink: '',
   sampleWinnerProfile: undefined,
 };
 

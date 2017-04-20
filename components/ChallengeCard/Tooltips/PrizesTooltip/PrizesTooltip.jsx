@@ -66,8 +66,8 @@ function Tip(props) {
   let prizes;
   const isLoaded = props.isLoaded;
   if (isLoaded) {
-    if (props.challenge.prize) {
-      prizes = props.challenge.prize.map((prize, index) => {
+    if (props.challenge.prizes) {
+      prizes = props.challenge.prizes.map((prize, index) => {
         const place = 1 + index;
         return <Prize key={place} place={place} prize={prize} isLoaded={isLoaded} />;
       });
@@ -101,7 +101,7 @@ Tip.defaultProps = {
 
 Tip.propTypes = {
   challenge: PT.shape({
-    prize: PT.array,
+    prizes: PT.array,
     reliabilityBonus: PT.number,
   }).isRequired,
   isLoaded: PT.bool,
@@ -121,35 +121,12 @@ class PrizesTooltip extends React.Component {
     this.onTooltipHover = this.onTooltipHover.bind(this);
   }
   onTooltipHover() {
-    const that = this;
-    const chClone = _.clone(this.props.challenge);
-    this.fetchChallengeDetails(chClone.challengeId).then((passedIndetails) => {
-      const details = passedIndetails;
-      const chId = `${chClone.challengeId}`;
-      if (chId.length < ID_LENGTH) {
-        details.postingDate = chClone.startDate;
-        details.registrationEndDate = chClone.endDate;
-        details.submissionEndDate = chClone.endDate;
-        details.appealsEndDate = chClone.endDate;
-      }
-      that.setState({
-        chDetails: details,
-        isLoaded: true,
-      });
+    this.setState({
+      isLoaded: true,
+      chDetails: this.props.challenge,
     });
   }
-  // It fetches detailed challenge data and attaches them to the 'details'
-  // field of each challenge object.
-  fetchChallengeDetails(id) {
-    const challengeId = `${id}`; // change to string
-    const baseUrl = this.props.config.API_URL_V2;
-    const challengesApi = `${baseUrl}/challenges/`;
-    const mmApi = `${baseUrl}/data/marathon/challenges/`; // MM - marathon match
-    if (challengeId.length < ID_LENGTH) {
-      return fetch(`${mmApi}${id}`).then(res => res.json());
-    }
-    return fetch(`${challengesApi}${id}`).then(res => res.json());
-  }
+
   render() {
     const tip = <Tip challenge={this.state.chDetails} isLoaded={this.state.isLoaded} />;
     return (
@@ -162,23 +139,17 @@ class PrizesTooltip extends React.Component {
 
 PrizesTooltip.defaultProps = {
   challenge: {
-    prize: [],
+    prizes: [],
   },
   children: [],
-  config: {
-    API_URL_V2: '',
-  },
 };
 
 PrizesTooltip.propTypes = {
   challenge: PT.shape({
-    prize: PT.array,
+    prizes: PT.array,
     reliabilityBonus: PT.number,
   }),
   children: PT.node.isRequired,
-  config: PT.shape({
-    API_URL_V2: PT.string,
-  }),
 };
 
 export default PrizesTooltip;
