@@ -153,7 +153,7 @@ class ChallengeStatus extends Component {
     const { detailLink } = this.props;
     const lng = getTimeLeft(
       challenge.registrationEndDate || challenge.submissionEndDate,
-      'Registration',
+      'Submission',
     ).text.length;
     return (
       <a
@@ -165,7 +165,7 @@ class ChallengeStatus extends Component {
           {
             getTimeLeft(
               challenge.registrationEndDate || challenge.submissionEndDate,
-              'Registration',
+              'Submission',
             ).text.substring(0, lng - 6)
           }
         </span>
@@ -195,7 +195,7 @@ class ChallengeStatus extends Component {
     let phaseMessage = STALLED_MSG;
     if (challenge.currentPhases || challenge.registrationOpen === 'Yes') {
       phaseMessage = getStatusPhase(challenge).currentPhaseName;
-    } else if (challenge.status === 'Draft') {
+    } else if (challenge.status === 'DRAFT') {
       phaseMessage = DRAFT_MSG;
     }
     return (

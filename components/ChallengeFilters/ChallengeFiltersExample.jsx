@@ -262,10 +262,8 @@ class ChallengeFiltersExample extends React.Component {
               platforms: [],
               registrationOpen: endTimestamp > Date.now() ? 'Yes' : 'No',
               technologies: [],
-              track: item.track,
               status: endTimestamp > Date.now() ? 'Active' : 'Completed',
               submissionEndTimestamp: endTimestamp,
-              subTrack: item.subTrack,
             });
             map[item.id] = item;
             item.platforms.split(',').forEach(helper1);
@@ -284,6 +282,10 @@ class ChallengeFiltersExample extends React.Component {
       fetch(`${api}/challenges/?filter=status=completed&limit=100`).then(res => helper2(res, DESIGN_TRACK)),
       fetch(`${api}/challenges/?filter=status=completed&limit=100`).then(res => helper2(res, DEVELOP_TRACK)),
       fetch(`${api}/marathonMatches/?filter=status=completed&limit=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
+      /* Fetching of some upcoming challenges */
+      fetch(`${api}/challenges/?filter=status=draft&limit=100`).then(res => helper2(res, DESIGN_TRACK)),
+      fetch(`${api}/challenges/?filter=status=draft&limit=100`).then(res => helper2(res, DEVELOP_TRACK)),
+      fetch(`${api}/marathonMatches/?filter=status=draft&limit=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
     ]).then(() => {
       _.forIn(map, item => challenges.push(item));
       challenges.sort((a, b) => b.submissionEndTimestamp - a.submissionEndTimestamp);
