@@ -281,9 +281,9 @@ class ChallengeFiltersExample extends React.Component {
       fetch(`${api}/challenges/?track=develop&filter=status=active`).then(res => helper2(res, DEVELOP_TRACK)),
       fetch(`${api}/marathonMatches/?filter=status=active`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
       /* Fetching of some past challenges */
-      fetch(`${api}/challenges/?filter=status=completed&pageSize=100`).then(res => helper2(res, DESIGN_TRACK)),
-      fetch(`${api}/challenges/?filter=status=completed&pageSize=100`).then(res => helper2(res, DEVELOP_TRACK)),
-      fetch(`${api}/marathonMatches/?filter=status=completed&pageSize=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
+      fetch(`${api}/challenges/?filter=status=completed&limit=100`).then(res => helper2(res, DESIGN_TRACK)),
+      fetch(`${api}/challenges/?filter=status=completed&limit=100`).then(res => helper2(res, DEVELOP_TRACK)),
+      fetch(`${api}/marathonMatches/?filter=status=completed&limit=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
     ]).then(() => {
       _.forIn(map, item => challenges.push(item));
       challenges.sort((a, b) => b.submissionEndTimestamp - a.submissionEndTimestamp);

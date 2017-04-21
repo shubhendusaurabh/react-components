@@ -85,7 +85,6 @@ Phase.propTypes = {
  * Renders the tooltip's content.
  */
 function Tip(props) {
-  let steps = [];
   const c = props.challenge;
   const isLoaded = props.isLoaded;
   if (!c) return <div />;
@@ -94,43 +93,22 @@ function Tip(props) {
   // sorts these deadlines by their dates, and then generates the challenge timeline.
   // The result should be fine for simple dev challenges, but will be strange for
   // such as Assembly, etc.
-  steps.push({
-    date: c.postingDate ? new Date(c.postingDate) : new Date(0),
-    name: 'Start',
-  });
-  steps = c.allPhases || [];
-  let currentPhase = c.currentPhases ? c.currentPhases.find( phase => phase.phaseStatus === 'Open') : '';
-  // steps = steps.sort((a, b) => a.date.getTime() - b.date.getTime());
-  const currentPhaseEnd = new Date(currentPhase ? currentPhase.scheduledEndTime : '');
+  let steps = c.allPhases || [];
   steps = steps.map((step, index) => {
     let progress = 0;
     const now = moment();
-    let left = 1000 * moment.duration(moment(step.scheduledEndTime).diff()).asSeconds();
+    let left = 1000 * moment.duration(now.diff(moment(step.scheduledStartTime))).asSeconds();
+    let duration = 1000 * moment.duration(moment(step.scheduledEndTime).diff(moment(step.scheduledStartTime))).asSeconds();
     if (left < 0) progress = -1;
-    else progress = 100 * (left / step.duration);
-
-    // progress = step.duration
-    console.log(progress)
-    // if (index < steps.length - 1) {
-
-    //   if (steps[1 + index].date.getTime() < currentPhaseEnd.getTime()) progress = 100;
-    //   else if (step.date.getTime() > currentPhaseEnd.getTime()) progress = 0;
-    //   else {
-    //     const left = 1000 * moment.duration(moment().diff(currentPhaseEnd)).asSeconds();
-    //     if (left < 0) progress = -1;
-    //     else {
-    //       progress = 100 * (left / (steps[1 + index].date.getTime() - steps[index].date.getTime()));
-    //     }
-    //   }
-    // }
+    else progress = 100 * (left / duration);
 
     const phaseId = index;
     return (
       <Phase
-        date={step.scheduledStartTime}
+        date={moment(step.scheduledStartTime)}
         key={phaseId}
-        last={index === steps.length - 1}
         phase={step.phaseType}
+        last={index === steps.length - 1}
         progress={`${progress}%`}
         started={moment(step.scheduledStartTime) > now}
         isLoaded={isLoaded}
@@ -172,17 +150,6 @@ class ProgressBarTooltip extends React.Component {
       isLoaded: true,
     });
   }
-  // It fetches detailed challenge data and attaches them to the 'details'
-  // field of each challenge object.
-  // fetchChallengeDetails(id) {
-  //   const challengesApi = `${this.props.config.API_URL_V2}/challenges/`;
-  //   const mmApi = `${this.props.config.API_URL_V2}/data/marathon/challenges/`; // MM - marathon match
-  //   const challengeId = `${id}`; // change to string
-  //   if (challengeId.length < ID_LENGTH) {
-  //     return fetch(`${mmApi}${id}`).then(res => res.json());
-  //   }
-  //   return fetch(`${challengesApi}${id}`).then(res => res.json());
-  // }
   render() {
     const tip = <Tip challenge={this.state.chDetails} isLoaded={this.state.isLoaded} />;
     return (

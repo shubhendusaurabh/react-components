@@ -19,9 +19,9 @@ export default [
       'Prize high to low',
       'Title A-Z',
     ],
-    // getApiUrl: (pageIndex, pageSize = 50) => (
-    //   `${process.env.API_URL}/challenges?&pageIndex=${pageIndex}&pageSize=${pageSize}`
-    // ),
+    getApiUrl: (pageIndex, limit = 50, username = 'tonyj') => (
+      `${process.env.API_URL}/members/${username}/challenges/?&filter=status=active&limit=${limit}&orderBy=submissionEndDate`
+    ),
   },
   {
     name: 'Open for registration',
@@ -40,8 +40,8 @@ export default [
     info: {
       phaseName: 'registration',
     },
-    getApiUrl: (pageIndex, pageSize = 50) => (
-      `${process.env.API_URL}/challenges/?pageIndex=${pageIndex}&pageSize=${pageSize}`
+    getApiUrl: (pageIndex, limit = 50) => (
+      `${process.env.API_URL}/challenges/?pageIndex=${pageIndex}&limit=${limit}`
     ),
   },
   {
@@ -57,8 +57,8 @@ export default [
     ],
     // this api endpoint probably doesn't match the filter criteria exactly
     // kept for reference
-    // getApiUrl: (pageIndex, pageSize = 50) => (
-    //   `http://api.topcoder.com/v2/challenges/active?pageIndex=${pageIndex}&pageSize=${pageSize}`
+    // getApiUrl: (pageIndex, limit = 50) => (
+    //   `http://api.topcoder.com/v2/challenges/active?pageIndex=${pageIndex}&limit=${limit}`
     // ),
   },
   {
@@ -71,8 +71,8 @@ export default [
       'Title A-Z',
       'Prize high to low',
     ],
-    getApiUrl: (pageIndex, pageSize = 50) => (
-      `${process.env.API_URL}/challenges/?filter=status=completed&pageIndex=${pageIndex}&pageSize=${pageSize}`
+    getApiUrl: (pageIndex, limit = 50) => (
+      `${process.env.API_URL}/challenges/?filter=status=completed&pageIndex=${pageIndex}&limit=${limit}`
     ),
   },
   /**
@@ -92,27 +92,27 @@ export default [
     // No api endpoint available currently
     // the commented out api endpoint is most likely wrong
     // kept for reference
-    // getApiUrl: (pageIndex, pageSize = 50) => {
+    // getApiUrl: (pageIndex, limit = 50) => {
     //   const yesterday = new Date();
     //   yesterday.setDate(yesterday.getDate() - 1);
     //   const yesterdayFormatted = yesterday.toJSON().slice(0, 10);
     //
-    //   return `http://api.topcoder.com/v2/challenges/open?pageIndex=${pageIndex}&pageSize=${pageSize}&submissionEndTo=${yesterdayFormatted}`;
+    //   return `http://api.topcoder.com/v2/challenges/open?pageIndex=${pageIndex}&limit=${limit}&submissionEndTo=${yesterdayFormatted}`;
     // },
   },
   */
   {
     name: 'Upcoming challenges',
     check(item) {
-      return moment(item.registrationStartDate) > moment();
+      return item.status === 'DRAFT';
     },
     sortingOptions: [
       'Most recent',
       'Title A-Z',
       'Prize high to low',
     ],
-    getApiUrl: (pageIndex, pageSize = 50) => (
-      `${process.env.API_URL_V2}/challenges/upcoming?pageIndex=${pageIndex}&pageSize=${pageSize}`
+    getApiUrl: (pageIndex, limit = 50) => (
+      `${process.env.API_URL}/challenges/?filter=status=draft&pageIndex=${pageIndex}&limit=${limit}`
     ),
   },
 ];

@@ -74,50 +74,18 @@ function numSubmissionsTipText(number) {
 }
 
 const getStatusPhase = (challenge) => {
-  const currentPhase = challenge.currentPhases ? challenge.currentPhases.find(phase => phase.phaseStatus === 'Open') : '';
-  if (currentPhase) {
+  const currentOpenPhases = challenge.currentPhases ? challenge.currentPhases.filter(phase => phase.phaseStatus === 'Open' && phase.phaseType !== 'Registration') : '';
+  if (currentOpenPhases.length) {
+    currentOpenPhases.sort((a, b) => moment(b.scheduledEndTime) - moment(a.scheduledEndTime));
     return {
-      currentPhaseName: currentPhase.phaseType,
-      currentPhaseEndDate: currentPhase.scheduledEndTime,
+      currentPhaseName: currentOpenPhases[0].phaseType,
+      currentPhaseEndDate: currentOpenPhases[0].scheduledEndTime,
     };
   }
   return {
-    currentPhaseName: 'Registration',
-    currentPhaseEndDate: challenge.registrationEndDate,
+    currentPhaseName: 'Submission',
+    currentPhaseEndDate: challenge.submissionEndDate,
   };
-  // switch (challenge.currentPhaseName) {
-  //   case 'Registration': {
-  //     if (challenge.checkpointSubmissionEndDate && !getTimeLeft(challenge.checkpointSubmissionEndDate, 'Checkpoint').late) {
-  //       return {
-  //         currentPhaseName: 'Checkpoint',
-  //         currentPhaseEndDate: challenge.checkpointSubmissionEndDate,
-  //       };
-  //     }
-
-  //     return {
-  //       currentPhaseName: 'Submission',
-  //       currentPhaseEndDate: challenge.submissionEndDate,
-  //     };
-  //   }
-  //   case 'Submission': {
-  //     if (challenge.checkpointSubmissionEndDate && !getTimeLeft(challenge.checkpointSubmissionEndDate, 'Checkpoint').late) {
-  //       return {
-  //         currentPhaseName: 'Checkpoint',
-  //         currentPhaseEndDate: challenge.checkpointSubmissionEndDate,
-  //       };
-  //     }
-
-  //     return {
-  //       currentPhaseName: 'Submission',
-  //       currentPhaseEndDate: challenge.submissionEndDate,
-  //     };
-  //   }
-  //   default:
-  //     return {
-  //       currentPhaseName: challenge.currentPhaseName,
-  //       currentPhaseEndDate: challenge.currentPhaseEndDate,
-  //     };
-  // }
 };
 
 const getTimeToGo = (start, end) => {
