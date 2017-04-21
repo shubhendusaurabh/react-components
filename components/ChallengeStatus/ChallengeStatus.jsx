@@ -165,8 +165,8 @@ class ChallengeStatus extends Component {
   renderLeaderboard() {
     const { challenge } = this.props;
     const { DS_CHALLENGE_URL, CHALLENGE_URL } = this.state;
-    const { id, challengeCommunity } = challenge;
-    const challengeURL = challengeCommunity.toLowerCase() === 'data' ? DS_CHALLENGE_URL : CHALLENGE_URL;
+    const { id, track } = challenge;
+    const challengeURL = track.toLowerCase() === 'data' ? DS_CHALLENGE_URL : CHALLENGE_URL;
     const leaderboard = this.state.winners && this.state.winners.map(winner => (
       <div className="avatar-container" key={winner.handle}>
         <UserAvatarTooltip user={getSampleProfile(winner)}>
@@ -225,7 +225,7 @@ class ChallengeStatus extends Component {
     const MM_REG = `${MM_LONGCONTEST}=ViewRegistrants&rd=`;
     const MM_SUB = `${MM_LONGCONTEST}=ViewStandings&rd=`;
     let phaseMessage = STALLED_MSG;
-    if (challenge.currentPhases) {
+    if (challenge.currentPhases || challenge.registrationOpen === 'Yes') {
       phaseMessage = getStatusPhase(challenge).currentPhaseName;
     } else if (challenge.status === 'Draft') {
       phaseMessage = DRAFT_MSG;
@@ -401,23 +401,23 @@ class ChallengeStatus extends Component {
   handleHover() {
     if (!this.state.winners) {
       const { challenge } = this.props;
-      const { id, challengeCommunity } = challenge;
+      const { id, track } = challenge;
 
       // We don't have the API for data science challenge
-      if (challengeCommunity.toLowerCase() === 'data') {
+      if (track.toLowerCase() === 'data') {
         return;
       }
-      const results = this.getWinners(challengeCommunity.toLowerCase(), id);
+      const results = this.getWinners(track.toLowerCase(), id);
       results.then(winners => this.setState({ winners }));
     }
   }
 
   render() {
     const { challenge } = this.props;
-    const status = challenge.status === 'Completed' ? 'completed' : '';
+    const status = challenge.status === 'COMPLETED' ? 'completed' : '';
     return (
       <div className={`challenge-status ${status}`}>
-        {challenge.status === 'Completed' ? this.completedChallenge() : this.activeChallenge()}
+        {challenge.status === 'COMPLETED' ? this.completedChallenge() : this.activeChallenge()}
       </div>
     );
   }

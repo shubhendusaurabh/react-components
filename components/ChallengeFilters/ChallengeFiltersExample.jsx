@@ -18,6 +18,7 @@
 import _ from 'lodash';
 import React, { PropTypes as PT } from 'react';
 import Sticky from 'react-stickynode';
+import moment from 'moment';
 
 import { DATA_SCIENCE_TRACK, DESIGN_TRACK, DEVELOP_TRACK } from './ChallengeFilter';
 import ChallengeFilterWithSearch from './ChallengeFilterWithSearch';
@@ -229,22 +230,23 @@ class ChallengeFiltersExample extends React.Component {
         /* Only marathon matches, when received from the /data/marathon/challenges
          * endpoint, satisfy this. */
         if (item.type === 'MARATHON_MATCH') {
-          const endTimestamp = new Date(item.endDate).getTime();
+          const currentRound = item.rounds.find(round => round.status === 'ACTIVE');
           _.defaults(item, {
             challengeName: item.name,
             challengeCommunity: 'Data',
             challengeType: 'Marathon',
             communities: new Set([community]),
-            currentPhaseEndDate: item.endDate,
-            currentPhaseName: endTimestamp > Date.now() ? 'Registration' : '',
+            currentPhaseEndDate: currentRound.registrationEndAt,
+            currentPhaseName: moment(currentRound.registrationStartAt) < moment() ? 'Registration' : '',
             numSubmissions: item.numberOfSubmissions || '',
             platforms: [],
             prize: [],
-            registrationOpen: endTimestamp > Date.now() ? 'Yes' : 'No',
-            registrationStartDate: item.startDate,
-            submissionEndDate: item.endDate,
-            submissionEndTimestamp: endTimestamp,
-            technologies: [],
+            registrationOpen: moment(currentRound.registrationStartAt) < moment() ? 'Yes' : 'No',
+            registrationStartDate: currentRound.registrationStartAt,
+            registrationEndDate: currentRound.registrationEndAt,
+            submissionEndDate: currentRound.codingEndAt,
+            submissionEndTimestamp: currentRound.codingEndAt,
+            technologies: '',
             totalPrize: 0,
           });
           map[item.id] = item;
@@ -275,15 +277,13 @@ class ChallengeFiltersExample extends React.Component {
     const api = this.props.config.API_URL;
     return Promise.all([
       /* Fetching of active challenges */
-      fetch(`${api}/challenges/?track=design`).then(res => helper2(res, DESIGN_TRACK)),
-      fetch(`${api}/challenges/?track=develop`).then(res => helper2(res, DEVELOP_TRACK)),
+      fetch(`${api}/challenges/?track=design&filter=status=active`).then(res => helper2(res, DESIGN_TRACK)),
+      fetch(`${api}/challenges/?track=develop&filter=status=active`).then(res => helper2(res, DEVELOP_TRACK)),
       fetch(`${api}/marathonMatches/?filter=status=active`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
-      // fetch(`${api}/data/marathon/challenges/?listType=active`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
       /* Fetching of some past challenges */
       fetch(`${api}/challenges/?filter=status=completed&pageSize=100`).then(res => helper2(res, DESIGN_TRACK)),
       fetch(`${api}/challenges/?filter=status=completed&pageSize=100`).then(res => helper2(res, DEVELOP_TRACK)),
-      // fetch(`${api}/dataScience/challenges/past?pageSize=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
-      // fetch(`${api}/data/marathon/challenges/?listType=past&pageSize=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
+      fetch(`${api}/marathonMatches/?filter=status=completed&pageSize=100`).then(res => helper2(res, DATA_SCIENCE_TRACK)),
     ]).then(() => {
       _.forIn(map, item => challenges.push(item));
       challenges.sort((a, b) => b.submissionEndTimestamp - a.submissionEndTimestamp);

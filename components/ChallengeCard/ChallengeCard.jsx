@@ -35,7 +35,7 @@ function ChallengeCard({
   if (_.indexOf(challenge.technologies, 'Data Science') > -1) {
     challenge.isDataScience = true;
   }
-  challenge.prize = challenge.prize || [];
+  challenge.prizes = challenge.prizes || [];
   // challenge.totalPrize = challenge.prize.reduce((x, y) => y + x, 0)
 
   const challengeDetailLink = () => {

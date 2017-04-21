@@ -88,7 +88,6 @@ function Tip(props) {
   let steps = [];
   const c = props.challenge;
   const isLoaded = props.isLoaded;
-  let appealsPhase = c.allPhases ? c.allPhases.find( phase => phase.phaseType === 'Appeals') : '';
   if (!c) return <div />;
   // TC API v2 does not provide detailed information on challenge phases,
   // it just includes some deadlines into the challenge details. The code below,
@@ -99,46 +98,41 @@ function Tip(props) {
     date: c.postingDate ? new Date(c.postingDate) : new Date(0),
     name: 'Start',
   });
-  steps.push({
-    date: new Date(c.submissionEndDate),
-    name: 'Submission',
-  });
-  if (c.checkpointSubmissionEndDate) {
-    steps.push({
-      date: new Date(c.checkpointSubmissionEndDate),
-      name: 'Checkpoint',
-    });
-  }
-  steps.push({
-    date: new Date(appealsPhase ? appealsPhase.scheduledEndTime : ''),
-    name: 'End',
-  });
+  steps = c.allPhases || [];
   let currentPhase = c.currentPhases ? c.currentPhases.find( phase => phase.phaseStatus === 'Open') : '';
-  steps = steps.sort((a, b) => a.date.getTime() - b.date.getTime());
+  // steps = steps.sort((a, b) => a.date.getTime() - b.date.getTime());
   const currentPhaseEnd = new Date(currentPhase ? currentPhase.scheduledEndTime : '');
   steps = steps.map((step, index) => {
     let progress = 0;
-    if (index < steps.length - 1) {
-      if (steps[1 + index].date.getTime() < currentPhaseEnd.getTime()) progress = 100;
-      else if (step.date.getTime() > currentPhaseEnd.getTime()) progress = 0;
-      else {
-        const left = 1000 * moment.duration(moment().diff(currentPhaseEnd)).asSeconds();
-        if (left < 0) progress = -1;
-        else {
-          progress = 100 * (left / (steps[1 + index].date.getTime() - steps[index].date.getTime()));
-        }
-      }
-    }
+    const now = moment();
+    let left = 1000 * moment.duration(moment(step.scheduledEndTime).diff()).asSeconds();
+    if (left < 0) progress = -1;
+    else progress = 100 * (left / step.duration);
+
+    // progress = step.duration
+    console.log(progress)
+    // if (index < steps.length - 1) {
+
+    //   if (steps[1 + index].date.getTime() < currentPhaseEnd.getTime()) progress = 100;
+    //   else if (step.date.getTime() > currentPhaseEnd.getTime()) progress = 0;
+    //   else {
+    //     const left = 1000 * moment.duration(moment().diff(currentPhaseEnd)).asSeconds();
+    //     if (left < 0) progress = -1;
+    //     else {
+    //       progress = 100 * (left / (steps[1 + index].date.getTime() - steps[index].date.getTime()));
+    //     }
+    //   }
+    // }
 
     const phaseId = index;
     return (
       <Phase
-        date={step.date}
+        date={step.scheduledStartTime}
         key={phaseId}
         last={index === steps.length - 1}
-        phase={step.name}
+        phase={step.phaseType}
         progress={`${progress}%`}
-        started={step.date.getTime() < currentPhaseEnd.getTime()}
+        started={moment(step.scheduledStartTime) > now}
         isLoaded={isLoaded}
       />
     );
@@ -146,7 +140,6 @@ function Tip(props) {
 
   return (
     <div className="tip">
-
       {steps}
     </div>
   );

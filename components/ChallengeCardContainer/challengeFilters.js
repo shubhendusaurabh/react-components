@@ -19,14 +19,14 @@ export default [
       'Prize high to low',
       'Title A-Z',
     ],
-    getApiUrl: (pageIndex, pageSize = 50) => (
-      `${process.env.API_URL}/challenges?&pageIndex=${pageIndex}&pageSize=${pageSize}`
-    ),
+    // getApiUrl: (pageIndex, pageSize = 50) => (
+    //   `${process.env.API_URL}/challenges?&pageIndex=${pageIndex}&pageSize=${pageSize}`
+    // ),
   },
   {
     name: 'Open for registration',
     check(item) {
-      return !!(item.currentPhases ? item.currentPhases.find(i => (i.phaseType === 'Registration' && i.phaseStatus === 'Open')) : (moment(item.registrationStartDate) < moment() && moment(item.registrationEndDate) > moment()));
+      return item.status === 'ACTIVE';
     },
     sortingOptions: [
       'Most recent',

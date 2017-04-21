@@ -11,12 +11,12 @@ import Tooltip from '../Tooltip';
 import './TrackAbbreviationTooltip.scss';
 
 const DESCRIPTION = {
-  'APPLICATION_FRONT-END_DESIGN': 'Design UI and front end experiences for apps',
+  APPLICATION_FRONT_END_DESIGN: 'Design UI and front end experiences for apps',
   ASSEMBLY_COMPETITION: 'Develop code for a variety of use cases. Rigorous review and final fix process is included.',
   CODE: 'Develop code for apps, services, etc. Final fixes are not included',
   FIRST_2_FINISH: 'Be the first to deliver the solution',
   DESIGN_FIRST_2_FINISH: 'Be the first to deliver the design',
-  'PRINT/PRESENTATION': 'Design print and presentation assets',
+  PRINT_OR_PRESENTATION: 'Design print and presentation assets',
   UI_PROTOTYPE_COMPETITION: 'Develop the front end of a UX',
   ARCHITECTURE: 'Architect modules, components, or full applications',
   WEB_DESIGNS: 'Design UI and front end experiences for web experiences',
@@ -27,12 +27,12 @@ const DESCRIPTION = {
 };
 
 const HEADER = {
-  'APPLICATION_FRONT-END_DESIGN': 'Application Front-End Design (AFED)',
+  APPLICATION_FRONT_END_DESIGN: 'Application Front-End Design (AFED)',
   ASSEMBLY_COMPETITION: 'Assembly (As)',
   CODE: 'Code (Cd)',
   FIRST_2_FINISH: 'First2Finish (F2F)',
   DESIGN_FIRST_2_FINISH: 'Design First2Finish (F2F)',
-  'PRINT/PRESENTATION': 'Print/Presentation (PP)',
+  PRINT_OR_PRESENTATION: 'Print/Presentation (PP)',
   UI_PROTOTYPE_COMPETITION: 'UI Prototype (Pr)',
   ARCHITECTURE: 'Architecture (Ar)',
   WEB_DESIGNS: 'Web Design (Wd)',
